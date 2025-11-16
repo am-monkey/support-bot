@@ -5,8 +5,8 @@ from aiogram.utils.markdown import hbold
 # Add other languages and their corresponding codes as needed.
 # You can also keep only one language by removing the line with the unwanted language.
 SUPPORTED_LANGUAGES = {
-    # "ru": "🇷🇺 Русский",
-    # "en": "🇬🇧 English",
+    "ru": "🇷🇺 Русский",
+    "en": "🇬🇧 English",
 }
 
 
@@ -57,17 +57,11 @@ class TextMessage(Text):
         """
         return {
             "en": {
-                "select_language": f"👋 <b>Hello</b>, {hbold('{full_name}')}!\n\nSelect language:",
-                "change_language": "<b>Select language:</b>",
                 "main_menu": "<b>Write your question</b>, and we will answer you as soon as possible:",
                 "message_sent": "<b>Message sent!</b> Expect a response.",
                 "message_edited": (
                     "<b>The message was edited only in your chat.</b> "
                     "To send an edited message, send it as a new message."
-                ),
-                "source": (
-                    "Source code available at "
-                    "<a href=\"https://github.com/nessshon/support-bot\">GitHub</a>"
                 ),
                 "user_started_bot": (
                     f"User {hbold('{name}')} started the bot!\n\n"
@@ -111,17 +105,11 @@ class TextMessage(Text):
                 ),
             },
             "ru": {
-                "select_language": f"👋 <b>Привет</b>, {hbold('{full_name}')}!\n\nВыберите язык:",
-                "change_language": "<b>Выберите язык:</b>",
                 "main_menu": "<b>Оставьте свой вопрос</b>, и мы ответим вам в ближайшее время:",
                 "message_sent": "<b>Сообщение отправлено!</b> Ожидайте ответа.",
                 "message_edited": (
                     "<b>Сообщение отредактировано только в вашем чате.</b> "
                     "Чтобы отправить отредактированное сообщение, отправьте его как новое сообщение."
-                ),
-                "source": (
-                    "Исходный код доступен на "
-                    "<a href=\"https://github.com/nessshon/support-bot\">GitHub</a>"
                 ),
                 "user_started_bot": (
                     f"Пользователь {hbold('{name}')} запустил(а) бота!\n\n"
