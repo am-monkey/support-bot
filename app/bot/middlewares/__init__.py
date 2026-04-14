@@ -4,6 +4,7 @@ from aiogram_newsletter.middleware import AiogramNewsletterMiddleware
 from .album import AlbumMiddleware
 from .manager import ManagerMiddleware
 from .redis import RedisMiddleware
+from .supabase import SupabaseMiddleware
 from .throttling import ThrottlingMiddleware
 
 
@@ -20,6 +21,8 @@ def register_middlewares(dp: Dispatcher, **kwargs) -> None:
     """
     # Register RedisMiddleware with the provided Redis instance
     dp.update.outer_middleware.register(RedisMiddleware(kwargs["redis"]))
+    # Register SupabaseMiddleware with the provided SupabaseStorage instance
+    dp.update.outer_middleware.register(SupabaseMiddleware(kwargs["supabase"]))
     # Register ManagerMiddleware
     dp.update.outer_middleware.register(ManagerMiddleware())
 

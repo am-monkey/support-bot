@@ -8,6 +8,7 @@ from aiogram.utils.markdown import hcode, hbold
 
 from app.bot.manager import Manager
 from app.bot.utils.redis import RedisStorage
+from app.bot.utils.supabase import SupabaseStorage
 
 router_id = Router()
 router_id.message.filter(
@@ -78,13 +79,14 @@ async def handler(message: Message, manager: Manager, redis: RedisStorage) -> No
 
 
 @router.message(Command("information"))
-async def handler(message: Message, manager: Manager, redis: RedisStorage) -> None:
+async def handler(message: Message, manager: Manager, redis: RedisStorage, supabase: SupabaseStorage) -> None:
     """
     Sends user information in response to the /information command.
 
     :param message: Message object.
     :param manager: Manager object.
     :param redis: RedisStorage object.
+    :param supabase: SupabaseStorage object.
     :return: None
     """
     user_data = await redis.get_by_message_thread_id(message.message_thread_id)
@@ -92,6 +94,11 @@ async def handler(message: Message, manager: Manager, redis: RedisStorage) -> No
 
     format_data = user_data.to_dict()
     format_data["full_name"] = hbold(format_data["full_name"])
+
+    sub_data = await supabase.get_subscription(user_data.id)
+    format_data["sub"] = sub_data["sub"] if sub_data else "-"
+    format_data["days_left"] = sub_data["days_left"] if sub_data else "-"
+
     text = manager.text_message.get("user_information")
     # Reply with formatted user information
     await message.reply(text.format_map(format_data))

@@ -44,6 +44,19 @@ class RedisConfig:
 
 
 @dataclass
+class SupabaseConfig:
+    """
+    Data class representing the configuration for Supabase.
+
+    Attributes:
+    - URL (str): The Supabase project URL.
+    - KEY (str): The Supabase service role key.
+    """
+    URL: str
+    KEY: str
+
+
+@dataclass
 class Config:
     """
     Data class representing the overall configuration for the application.
@@ -51,9 +64,11 @@ class Config:
     Attributes:
     - bot (BotConfig): The bot configuration.
     - redis (RedisConfig): The Redis configuration.
+    - supabase (SupabaseConfig): The Supabase configuration.
     """
     bot: BotConfig
     redis: RedisConfig
+    supabase: SupabaseConfig
 
 
 def load_config() -> Config:
@@ -76,5 +91,9 @@ def load_config() -> Config:
             HOST=env.str("REDIS_HOST"),
             PORT=env.int("REDIS_PORT"),
             DB=env.int("REDIS_DB"),
+        ),
+        supabase=SupabaseConfig(
+            URL=env.str("SUPABASE_URL"),
+            KEY=env.str("SUPABASE_SERVICE_ROLE_KEY"),
         ),
     )

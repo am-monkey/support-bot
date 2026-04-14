@@ -10,6 +10,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from .bot import commands
 from .bot.handlers import include_routers
 from .bot.middlewares import register_middlewares
+from .bot.utils.supabase import create_supabase_storage
 from .config import load_config, Config
 from .logger import setup_logger
 
@@ -98,9 +99,13 @@ async def main() -> None:
 
     # Include routes
     include_routers(dp)
+
+    # Create Supabase storage
+    supabase = await create_supabase_storage(config.supabase)
+
     # Register middlewares
     register_middlewares(
-        dp, config=config, redis=storage.redis, apscheduler=apscheduler
+        dp, config=config, redis=storage.redis, apscheduler=apscheduler, supabase=supabase
     )
 
     # Start the bot

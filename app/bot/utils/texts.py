@@ -93,7 +93,11 @@ class TextMessage(Text):
                     "<b>Blocked:</b>\n"
                     "- {is_banned}\n"
                     "<b>Registration date:</b>\n"
-                    "- {created_at}"
+                    "- {created_at}\n"
+                    "<b>Subscription key:</b>\n"
+                    "- <code>{sub}</code>\n"
+                    "<b>Days left:</b>\n"
+                    "- {days_left}"
                 ),
                 "message_not_sent": "<b>Message not sent!</b> An unexpected error occurred.",
                 "message_sent_to_user": "<b>Message sent to user!</b>",
@@ -141,7 +145,11 @@ class TextMessage(Text):
                     "<b>Заблокирован:</b>\n"
                     "- {is_banned}\n"
                     "<b>Дата регистрации:</b>\n"
-                    "- {created_at}"
+                    "- {created_at}\n"
+                    "<b>Ключ подписки:</b>\n"
+                    "- <code>{sub}</code>\n"
+                    "<b>Осталось дней:</b>\n"
+                    "- {days_left}"
                 ),
                 "message_not_sent": "<b>Сообщение не отправлено!</b> Произошла неожиданная ошибка.",
                 "message_sent_to_user": "<b>Сообщение отправлено пользователю!</b>",
