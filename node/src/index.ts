@@ -75,6 +75,14 @@ async function main(): Promise<void> {
 
   runner = run(bot);
   logger.info("Bot started");
+
+  // Surface fatal polling errors (e.g. 409 Conflict: another instance is
+  // polling the same token) as a clean log + controlled exit instead of an
+  // unhandled rejection.
+  void runner.task()?.catch((err) => {
+    logger.error({ err }, "Polling stopped with an error");
+    process.exit(1);
+  });
 }
 
 main().catch((e) => {
