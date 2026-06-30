@@ -41,39 +41,36 @@ export class RedisStore {
     return userIds.map(Number);
   }
 
-  private draftKey(draftMessageId: number): string {
-    return `ai_draft_${draftMessageId}`;
+  private suggestionKey(messageId: number): string {
+    return `ai_suggestion_${messageId}`;
   }
 
-  /** Stores a pending AI draft, keyed by the topic message id that carries the buttons. */
-  async saveDraft(
-    draftMessageId: number,
-    draft: AiDraft,
+  /** Stores an AI-suggested reply for operator approval, keyed by the button message id. */
+  async saveSuggestion(
+    messageId: number,
+    suggestion: AiSuggestion,
     ttlSeconds = 7 * 24 * 60 * 60,
   ): Promise<void> {
     await this.redis.set(
-      this.draftKey(draftMessageId),
-      JSON.stringify(draft),
+      this.suggestionKey(messageId),
+      JSON.stringify(suggestion),
       "EX",
       ttlSeconds,
     );
   }
 
-  async getDraft(draftMessageId: number): Promise<AiDraft | null> {
-    const data = await this.redis.get(this.draftKey(draftMessageId));
-    return data === null ? null : (JSON.parse(data) as AiDraft);
+  async getSuggestion(messageId: number): Promise<AiSuggestion | null> {
+    const data = await this.redis.get(this.suggestionKey(messageId));
+    return data === null ? null : (JSON.parse(data) as AiSuggestion);
   }
 
-  async deleteDraft(draftMessageId: number): Promise<void> {
-    await this.redis.del(this.draftKey(draftMessageId));
+  async deleteSuggestion(messageId: number): Promise<void> {
+    await this.redis.del(this.suggestionKey(messageId));
   }
 }
 
-/** A pending AI-generated draft awaiting operator approval. */
-export interface AiDraft {
+/** An AI-suggested reply offered to an operator on escalation. */
+export interface AiSuggestion {
   user_id: number;
-  question: string;
   text: string;
-  /** true when the draft delivers a personal VPN key — must never enter the KB. */
-  is_key?: boolean;
 }

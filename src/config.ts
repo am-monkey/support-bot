@@ -25,9 +25,10 @@ export interface AiConfig {
   VOYAGE_API_KEY: string;
   MODEL: string;
   EMBEDDING_MODEL: string;
-  CONFIDENCE_THRESHOLD: number;
   TOP_K: number;
   MATCH_THRESHOLD: number;
+  /** Escalate to an operator when top KB relevance is below this (0..1). */
+  ESCALATE_SIMILARITY: number;
 }
 
 export interface Config {
@@ -72,9 +73,9 @@ function loadConfig(): Config {
       VOYAGE_API_KEY: requireEnv("VOYAGE_API_KEY"),
       MODEL: optionalEnv("AI_MODEL", "claude-opus-4-8"),
       EMBEDDING_MODEL: optionalEnv("AI_EMBEDDING_MODEL", "voyage-3.5"),
-      CONFIDENCE_THRESHOLD: Number(optionalEnv("AI_CONFIDENCE_THRESHOLD", "0.7")),
       TOP_K: Number(optionalEnv("AI_TOP_K", "5")),
-      MATCH_THRESHOLD: Number(optionalEnv("AI_MATCH_THRESHOLD", "0.4")),
+      MATCH_THRESHOLD: Number(optionalEnv("AI_MATCH_THRESHOLD", "0.3")),
+      ESCALATE_SIMILARITY: Number(optionalEnv("AI_ESCALATE_SIMILARITY", "0.5")),
     },
   };
 }

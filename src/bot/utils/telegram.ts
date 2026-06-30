@@ -1,7 +1,26 @@
-import type { Api } from "grammy";
+import { GrammyError, type Api } from "grammy";
+
+import { escapeHtml } from "./html";
 
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Sends text (HTML parse mode), retrying with escaped text if parsing fails. */
+export async function sendHtmlSafe(
+  api: Api,
+  chatId: number,
+  text: string,
+): Promise<void> {
+  try {
+    await api.sendMessage(chatId, text);
+  } catch (e) {
+    if (e instanceof GrammyError && e.description.includes("can't parse")) {
+      await api.sendMessage(chatId, escapeHtml(text));
+    } else {
+      throw e;
+    }
+  }
 }
 
 /** Deletes a message, ignoring "message not found / can't be deleted" errors. */

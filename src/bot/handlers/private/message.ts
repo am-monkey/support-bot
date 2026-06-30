@@ -2,7 +2,7 @@ import { GrammyError } from "grammy";
 
 import { config } from "../../../config";
 import type { MyContext } from "../../../types";
-import { postDraftToTopic } from "../../utils/aiDraft";
+import { handleAiReply } from "../../utils/aiDraft";
 import { createForumTopic, getOrCreateForumTopic } from "../../utils/forumTopic";
 import { replyTransient } from "../../utils/telegram";
 
@@ -56,9 +56,9 @@ export async function incomingMessageHandler(ctx: MyContext): Promise<void> {
     }
   }
 
-  // Generate an AI draft for the operator (invisible to the user), in parallel
-  // with the transient confirmation so the 5s auto-delete doesn't delay it.
-  // Only for text questions; albums and media without a caption go to operators.
+  // AI auto-answers the user directly (and notifies operators), in parallel
+  // with the transient confirmation. Only for text questions; albums and media
+  // without a caption are left to operators.
   const question = message.text ?? message.caption;
   await Promise.all([
     replyTransient(
@@ -68,7 +68,7 @@ export async function incomingMessageHandler(ctx: MyContext): Promise<void> {
       ctx.manager.text.get("message_sent"),
     ),
     question && question.trim()
-      ? postDraftToTopic(ctx, userData, question)
+      ? handleAiReply(ctx, userData, question)
       : Promise.resolve(),
   ]);
 }

@@ -1,23 +1,26 @@
 import type { SupabaseStore } from "../bot/utils/supabaseStore";
-import { config } from "../config";
 import { logger } from "../logger";
 import { generateDraft, type DraftResult } from "./anthropic";
 import { embedQuery } from "./embeddings";
 import { retrieve } from "./knowledgeBase";
 
 export interface DraftOutcome {
-  draft: string;
+  answer: string;
   confidence: number;
-  /** true when the draft is low-confidence or the model asked for a human. */
+  /** Highest cosine similarity among retrieved KB matches (0 if none). */
+  topSimilarity: number;
+  /** Model could not answer from the knowledge base. */
   needsHuman: boolean;
-  /** true when the user is asking for their own VPN key/config. */
+  /** User explicitly asked for a human/operator. */
+  wantsOperator: boolean;
+  /** User is asking for their own VPN key/config. */
   wantsOwnKey: boolean;
   reason: string;
 }
 
 /**
- * End-to-end draft pipeline: embed the question, retrieve similar Q&A from the
- * knowledge base, and ask Claude for a grounded draft. Returns null on failure
+ * End-to-end pipeline: embed the question, retrieve similar Q&A from the
+ * knowledge base, and ask Claude for a grounded answer. Returns null on failure
  * so the caller can fall back to plain operator handling.
  */
 export async function buildDraft(
@@ -27,15 +30,15 @@ export async function buildDraft(
   try {
     const queryEmbedding = await embedQuery(question);
     const matches = await retrieve(supabase.raw, queryEmbedding);
+    const topSimilarity = matches.reduce((m, c) => Math.max(m, c.similarity), 0);
     const result: DraftResult = await generateDraft(question, matches);
 
-    const needsHuman =
-      result.needs_human || result.confidence < config.ai.CONFIDENCE_THRESHOLD;
-
     return {
-      draft: result.draft_answer,
+      answer: result.draft_answer,
       confidence: result.confidence,
-      needsHuman,
+      topSimilarity,
+      needsHuman: result.needs_human,
+      wantsOperator: result.wants_operator,
       wantsOwnKey: result.wants_own_key,
       reason: result.reason,
     };

@@ -15,7 +15,7 @@ import {
 } from "./group/message";
 import { aiCallbackHandler } from "./group/aiCallback";
 import { callbackQueryHandler } from "./private/callbackQuery";
-import { newsletterHandler, startHandler } from "./private/command";
+import { startHandler } from "./private/command";
 import {
   editedMessageHandler,
   incomingMessageHandler,
@@ -36,10 +36,10 @@ export function registerHandlers(bot: Bot<MyContext>): void {
   groupThread.command("silent", silentHandler);
   groupThread.command("information", informationHandler);
   groupThread.command("ban", banHandler);
-  // AI draft buttons live on messages inside support topics.
+  // Operator taps "send suggested reply" on an escalated AI suggestion.
   bot
     .filter((ctx) => ctx.chat?.id === config.bot.GROUP_ID)
-    .callbackQuery(["ai:send", "ai:edit", "ai:reject"], aiCallbackHandler);
+    .callbackQuery("ai:approve", aiCallbackHandler);
 
   groupThread.on("message:forum_topic_created", topicCreatedHandler);
   groupThread.on(
@@ -56,9 +56,6 @@ export function registerHandlers(bot: Bot<MyContext>): void {
   // Private chat.
   const priv = bot.chatType("private");
   priv.command("start", startHandler);
-  priv
-    .filter((ctx) => ctx.from?.id === config.bot.DEV_ID)
-    .command("newsletter", newsletterHandler);
   priv.on("edited_message", editedMessageHandler);
   priv.on("my_chat_member", myChatMemberHandler);
   priv.on("callback_query", callbackQueryHandler);
