@@ -73,6 +73,11 @@ const DATA: Record<Lang, Record<string, string>> = {
     ai_draft_edit_hint:
       "✏️ Write your own reply in this topic — it will be relayed to the user.",
     ai_draft_expired: "This draft is no longer available.",
+    vpn_key_message:
+      "🔑 <b>Your HAPP key:</b>\n{key}\n\n" +
+      "Open the HAPP app → “+” → add from clipboard / by link, paste the key, and connect.",
+    vpn_key_not_found:
+      "I couldn't find an active key for this user. Please check their subscription before sending.",
   },
   ru: {
     main_menu:
@@ -140,6 +145,11 @@ const DATA: Record<Lang, Record<string, string>> = {
     ai_draft_edit_hint:
       "✏️ Напишите свой ответ в этом топике — он будет переслан пользователю.",
     ai_draft_expired: "Этот черновик больше недоступен.",
+    vpn_key_message:
+      "🔑 <b>Ваш ключ для HAPP:</b>\n{key}\n\n" +
+      "Откройте приложение HAPP → «+» → добавить из буфера / по ссылке, вставьте ключ и подключайтесь.",
+    vpn_key_not_found:
+      "Не нашёл активный ключ для этого пользователя. Проверьте подписку перед отправкой.",
   },
 };
 

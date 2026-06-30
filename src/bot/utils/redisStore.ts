@@ -74,4 +74,6 @@ export interface AiDraft {
   user_id: number;
   question: string;
   text: string;
+  /** true when the draft delivers a personal VPN key — must never enter the KB. */
+  is_key?: boolean;
 }

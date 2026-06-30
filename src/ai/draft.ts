@@ -10,6 +10,8 @@ export interface DraftOutcome {
   confidence: number;
   /** true when the draft is low-confidence or the model asked for a human. */
   needsHuman: boolean;
+  /** true when the user is asking for their own VPN key/config. */
+  wantsOwnKey: boolean;
   reason: string;
 }
 
@@ -34,6 +36,7 @@ export async function buildDraft(
       draft: result.draft_answer,
       confidence: result.confidence,
       needsHuman,
+      wantsOwnKey: result.wants_own_key,
       reason: result.reason,
     };
   } catch (e) {

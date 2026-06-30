@@ -80,7 +80,10 @@ export async function aiCallbackHandler(ctx: MyContext): Promise<void> {
     } catch {
       /* ignore */
     }
-    await learn(ctx, draft);
+    // Never store personal VPN keys in the shared knowledge base.
+    if (!draft.is_key) {
+      await learn(ctx, draft);
+    }
     return;
   }
 

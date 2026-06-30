@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "export:history": "tsx scripts/exportHistory.ts",
     "kb:parse": "tsx scripts/parseExport.ts",
-    "kb:build": "tsx scripts/buildKnowledgeBase.ts"
+    "kb:build": "tsx scripts/buildKnowledgeBase.ts",
+    "kb:seed": "tsx scripts/seedFaq.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.107.0",

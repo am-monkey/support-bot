@@ -19,6 +19,27 @@ export class SupabaseStore {
     return this.client;
   }
 
+  /**
+   * Returns the VPN key for a user, looked up STRICTLY by their chat_id.
+   * The caller must pass the trusted sender/topic-owner id — never a value from
+   * message text — so a user can only ever receive their own key.
+   * Column name is configurable via SUPABASE_VPN_KEY_COLUMN (default "vpn_key").
+   */
+  async getVpnKey(userId: number): Promise<string | null> {
+    const column = process.env.SUPABASE_VPN_KEY_COLUMN ?? "vpn_key";
+    const { data, error } = await this.client
+      .from(TABLE_NAME)
+      .select(column)
+      .eq(CHAT_ID_FIELD, userId)
+      .maybeSingle();
+
+    if (error || !data) {
+      return null;
+    }
+    const value = (data as unknown as Record<string, unknown>)[column];
+    return value ? String(value) : null;
+  }
+
   async getSubscription(userId: number): Promise<Subscription | null> {
     const { data } = await this.client
       .from(TABLE_NAME)
