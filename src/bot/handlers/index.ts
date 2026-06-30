@@ -13,6 +13,7 @@ import {
   operatorMessageHandler,
   topicCreatedHandler,
 } from "./group/message";
+import { aiCallbackHandler } from "./group/aiCallback";
 import { callbackQueryHandler } from "./private/callbackQuery";
 import { newsletterHandler, startHandler } from "./private/command";
 import {
@@ -35,6 +36,11 @@ export function registerHandlers(bot: Bot<MyContext>): void {
   groupThread.command("silent", silentHandler);
   groupThread.command("information", informationHandler);
   groupThread.command("ban", banHandler);
+  // AI draft buttons live on messages inside support topics.
+  bot
+    .filter((ctx) => ctx.chat?.id === config.bot.GROUP_ID)
+    .callbackQuery(["ai:send", "ai:edit", "ai:reject"], aiCallbackHandler);
+
   groupThread.on("message:forum_topic_created", topicCreatedHandler);
   groupThread.on(
     [

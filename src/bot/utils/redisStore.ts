@@ -40,4 +40,38 @@ export class RedisStore {
     const userIds = await this.redis.hkeys(RedisStore.NAME);
     return userIds.map(Number);
   }
+
+  private draftKey(draftMessageId: number): string {
+    return `ai_draft_${draftMessageId}`;
+  }
+
+  /** Stores a pending AI draft, keyed by the topic message id that carries the buttons. */
+  async saveDraft(
+    draftMessageId: number,
+    draft: AiDraft,
+    ttlSeconds = 7 * 24 * 60 * 60,
+  ): Promise<void> {
+    await this.redis.set(
+      this.draftKey(draftMessageId),
+      JSON.stringify(draft),
+      "EX",
+      ttlSeconds,
+    );
+  }
+
+  async getDraft(draftMessageId: number): Promise<AiDraft | null> {
+    const data = await this.redis.get(this.draftKey(draftMessageId));
+    return data === null ? null : (JSON.parse(data) as AiDraft);
+  }
+
+  async deleteDraft(draftMessageId: number): Promise<void> {
+    await this.redis.del(this.draftKey(draftMessageId));
+  }
+}
+
+/** A pending AI-generated draft awaiting operator approval. */
+export interface AiDraft {
+  user_id: number;
+  question: string;
+  text: string;
 }

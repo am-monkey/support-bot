@@ -20,10 +20,21 @@ export interface SupabaseConfig {
   KEY: string;
 }
 
+export interface AiConfig {
+  ANTHROPIC_API_KEY: string;
+  VOYAGE_API_KEY: string;
+  MODEL: string;
+  EMBEDDING_MODEL: string;
+  CONFIDENCE_THRESHOLD: number;
+  TOP_K: number;
+  MATCH_THRESHOLD: number;
+}
+
 export interface Config {
   bot: BotConfig;
   redis: RedisConfig;
   supabase: SupabaseConfig;
+  ai: AiConfig;
 }
 
 function requireEnv(name: string): string {
@@ -32,6 +43,11 @@ function requireEnv(name: string): string {
     throw new Error(`Missing required environment variable: ${name}`);
   }
   return value;
+}
+
+function optionalEnv(name: string, fallback: string): string {
+  const value = process.env[name];
+  return value === undefined || value === "" ? fallback : value;
 }
 
 function loadConfig(): Config {
@@ -50,6 +66,15 @@ function loadConfig(): Config {
     supabase: {
       URL: requireEnv("SUPABASE_URL"),
       KEY: requireEnv("SUPABASE_SERVICE_ROLE_KEY"),
+    },
+    ai: {
+      ANTHROPIC_API_KEY: requireEnv("ANTHROPIC_API_KEY"),
+      VOYAGE_API_KEY: requireEnv("VOYAGE_API_KEY"),
+      MODEL: optionalEnv("AI_MODEL", "claude-opus-4-8"),
+      EMBEDDING_MODEL: optionalEnv("AI_EMBEDDING_MODEL", "voyage-3.5"),
+      CONFIDENCE_THRESHOLD: Number(optionalEnv("AI_CONFIDENCE_THRESHOLD", "0.7")),
+      TOP_K: Number(optionalEnv("AI_TOP_K", "5")),
+      MATCH_THRESHOLD: Number(optionalEnv("AI_MATCH_THRESHOLD", "0.4")),
     },
   };
 }

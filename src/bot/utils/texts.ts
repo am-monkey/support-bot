@@ -61,6 +61,18 @@ const DATA: Record<Lang, Record<string, string>> = {
     newsletter_usage:
       "<b>Newsletter.</b> Send <code>/newsletter your text</code> or reply to a message with <code>/newsletter</code> to broadcast it to all users.",
     newsletter_done: "<b>Newsletter sent!</b> Delivered to {ok} of {total} users.",
+    ai_draft_header:
+      "🤖 <b>AI draft</b> (confidence {confidence}). Press ✅ to send it to the user.",
+    ai_draft_low_confidence:
+      "⚠️ <b>Low confidence</b> ({confidence}) — operator {operator} please review.\n<blockquote>{reason}</blockquote>",
+    ai_btn_send: "✅ Send",
+    ai_btn_edit: "✏️ Edit",
+    ai_btn_reject: "🗑 Reject",
+    ai_draft_sent: "✅ AI draft sent to the user.",
+    ai_draft_rejected: "🗑 AI draft rejected.",
+    ai_draft_edit_hint:
+      "✏️ Write your own reply in this topic — it will be relayed to the user.",
+    ai_draft_expired: "This draft is no longer available.",
   },
   ru: {
     main_menu:
@@ -116,6 +128,18 @@ const DATA: Record<Lang, Record<string, string>> = {
     newsletter_usage:
       "<b>Рассылка.</b> Отправьте <code>/newsletter ваш текст</code> или ответьте на сообщение командой <code>/newsletter</code>, чтобы разослать его всем пользователям.",
     newsletter_done: "<b>Рассылка отправлена!</b> Доставлено {ok} из {total} пользователей.",
+    ai_draft_header:
+      "🤖 <b>Черновик ИИ</b> (уверенность {confidence}). Нажмите ✅, чтобы отправить пользователю.",
+    ai_draft_low_confidence:
+      "⚠️ <b>Низкая уверенность</b> ({confidence}) — оператор {operator}, проверьте.\n<blockquote>{reason}</blockquote>",
+    ai_btn_send: "✅ Отправить",
+    ai_btn_edit: "✏️ Править",
+    ai_btn_reject: "🗑 Отклонить",
+    ai_draft_sent: "✅ Черновик ИИ отправлен пользователю.",
+    ai_draft_rejected: "🗑 Черновик ИИ отклонён.",
+    ai_draft_edit_hint:
+      "✏️ Напишите свой ответ в этом топике — он будет переслан пользователю.",
+    ai_draft_expired: "Этот черновик больше недоступен.",
   },
 };
 

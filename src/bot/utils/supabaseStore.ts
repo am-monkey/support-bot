@@ -14,6 +14,11 @@ export interface Subscription {
 export class SupabaseStore {
   constructor(private readonly client: SupabaseClient) {}
 
+  /** Raw Supabase client, for modules that issue their own queries (e.g. the knowledge base). */
+  get raw(): SupabaseClient {
+    return this.client;
+  }
+
   async getSubscription(userId: number): Promise<Subscription | null> {
     const { data } = await this.client
       .from(TABLE_NAME)
