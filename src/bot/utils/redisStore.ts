@@ -59,6 +59,24 @@ export class RedisStore {
     );
   }
 
+  private operatorReplyKey(userId: number): string {
+    return `operator_reply_${userId}`;
+  }
+
+  /**
+   * Marks that an operator replied to the user: while the key lives, the AI
+   * must not auto-answer this user's messages. Each operator reply refreshes
+   * the TTL; after it expires the AI resumes on the next user message.
+   */
+  async markOperatorReply(userId: number, ttlSeconds: number): Promise<void> {
+    await this.redis.set(this.operatorReplyKey(userId), "1", "EX", ttlSeconds);
+  }
+
+  /** Whether an operator replied to this user within the pause window. */
+  async isOperatorActive(userId: number): Promise<boolean> {
+    return (await this.redis.exists(this.operatorReplyKey(userId))) === 1;
+  }
+
   async getSuggestion(messageId: number): Promise<AiSuggestion | null> {
     const data = await this.redis.get(this.suggestionKey(messageId));
     return data === null ? null : (JSON.parse(data) as AiSuggestion);

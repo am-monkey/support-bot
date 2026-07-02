@@ -58,8 +58,13 @@ export async function incomingMessageHandler(ctx: MyContext): Promise<void> {
 
   // AI auto-answers the user directly (and notifies operators), in parallel
   // with the transient confirmation. Only for text questions; albums and media
-  // without a caption are left to operators.
+  // without a caption are left to operators. While an operator is actively
+  // handling the chat (replied within the pause window), the AI stays silent.
   const question = message.text ?? message.caption;
+  const operatorActive =
+    question && question.trim()
+      ? await ctx.redis.isOperatorActive(userData.id)
+      : false;
   await Promise.all([
     replyTransient(
       ctx.api,
@@ -67,7 +72,7 @@ export async function incomingMessageHandler(ctx: MyContext): Promise<void> {
       message.message_id,
       ctx.manager.text.get("message_sent"),
     ),
-    question && question.trim()
+    question && question.trim() && !operatorActive
       ? handleAiReply(ctx, userData, question)
       : Promise.resolve(),
   ]);

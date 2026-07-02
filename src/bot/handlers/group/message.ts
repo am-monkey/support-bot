@@ -80,5 +80,12 @@ export async function operatorMessageHandler(ctx: MyContext): Promise<void> {
       ctx.message!.message_id,
       errorText,
     );
+    return;
   }
+
+  // Operator answered — pause AI auto-replies for this user.
+  await ctx.redis.markOperatorReply(
+    userData.id,
+    config.ai.OPERATOR_PAUSE_MINUTES * 60,
+  );
 }

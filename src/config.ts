@@ -29,6 +29,8 @@ export interface AiConfig {
   MATCH_THRESHOLD: number;
   /** Escalate to an operator when top KB relevance is below this (0..1). */
   ESCALATE_SIMILARITY: number;
+  /** After an operator replies, the AI stays silent for this many minutes. */
+  OPERATOR_PAUSE_MINUTES: number;
 }
 
 export interface Config {
@@ -76,6 +78,7 @@ function loadConfig(): Config {
       TOP_K: Number(optionalEnv("AI_TOP_K", "5")),
       MATCH_THRESHOLD: Number(optionalEnv("AI_MATCH_THRESHOLD", "0.3")),
       ESCALATE_SIMILARITY: Number(optionalEnv("AI_ESCALATE_SIMILARITY", "0.5")),
+      OPERATOR_PAUSE_MINUTES: Number(optionalEnv("AI_OPERATOR_PAUSE_MINUTES", "30")),
     },
   };
 }

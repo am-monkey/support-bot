@@ -1,5 +1,6 @@
-import type { MyContext } from "../../../types";
+import { config } from "../../../config";
 import { logger } from "../../../logger";
+import type { MyContext } from "../../../types";
 import { sendHtmlSafe } from "../../utils/telegram";
 
 /** Approves an AI-suggested reply: sends it to the user and clears the button. */
@@ -34,6 +35,11 @@ export async function aiCallbackHandler(ctx: MyContext): Promise<void> {
   }
 
   await ctx.redis.deleteSuggestion(message.message_id);
+  // An operator approved the reply — pause AI auto-replies for this user.
+  await ctx.redis.markOperatorReply(
+    suggestion.user_id,
+    config.ai.OPERATOR_PAUSE_MINUTES * 60,
+  );
   await ctx.answerCallbackQuery({
     text: ctx.manager.text.get("ai_suggested_sent"),
   });
