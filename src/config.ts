@@ -24,6 +24,8 @@ export interface AiConfig {
   ANTHROPIC_API_KEY: string;
   VOYAGE_API_KEY: string;
   MODEL: string;
+  /** Thinking depth / token spend: low | medium | high | xhigh | max. */
+  EFFORT: "low" | "medium" | "high" | "xhigh" | "max";
   EMBEDDING_MODEL: string;
   TOP_K: number;
   MATCH_THRESHOLD: number;
@@ -73,7 +75,8 @@ function loadConfig(): Config {
     ai: {
       ANTHROPIC_API_KEY: requireEnv("ANTHROPIC_API_KEY"),
       VOYAGE_API_KEY: requireEnv("VOYAGE_API_KEY"),
-      MODEL: optionalEnv("AI_MODEL", "claude-opus-4-8"),
+      MODEL: optionalEnv("AI_MODEL", "claude-sonnet-5"),
+      EFFORT: optionalEnv("AI_EFFORT", "low") as AiConfig["EFFORT"],
       EMBEDDING_MODEL: optionalEnv("AI_EMBEDDING_MODEL", "voyage-3.5"),
       TOP_K: Number(optionalEnv("AI_TOP_K", "5")),
       MATCH_THRESHOLD: Number(optionalEnv("AI_MATCH_THRESHOLD", "0.3")),

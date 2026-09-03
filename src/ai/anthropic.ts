@@ -95,7 +95,10 @@ export async function generateDraft(
     model: config.ai.MODEL,
     max_tokens: 2048,
     thinking: { type: "adaptive" },
-    output_config: { format: { type: "json_schema", schema: OUTPUT_SCHEMA } },
+    output_config: {
+      effort: config.ai.EFFORT,
+      format: { type: "json_schema", schema: OUTPUT_SCHEMA },
+    },
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userContent }],
   });
