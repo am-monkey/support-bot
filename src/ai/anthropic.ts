@@ -93,7 +93,8 @@ export async function generateDraft(
 
   const response = await client.messages.create({
     model: config.ai.MODEL,
-    max_tokens: 2048,
+    // Backstop only: adaptive thinking counts toward it too.
+    max_tokens: 4096,
     thinking: { type: "adaptive" },
     output_config: {
       effort: config.ai.EFFORT,
@@ -102,6 +103,21 @@ export async function generateDraft(
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userContent }],
   });
+
+  logger.info(
+    { model: response.model, stop: response.stop_reason, usage: response.usage },
+    "AI draft usage",
+  );
+
+  // Anything but end_turn (max_tokens cut-off, refusal) leaves the JSON
+  // incomplete or missing — fail loudly instead of parsing a fragment.
+  if (response.stop_reason !== "end_turn") {
+    logger.error(
+      { stop: response.stop_reason, details: response.stop_details },
+      "AI draft did not complete",
+    );
+    throw new Error(`AI draft stopped with ${response.stop_reason}`);
+  }
 
   const textBlock = response.content.find((b) => b.type === "text");
   if (!textBlock || textBlock.type !== "text") {

@@ -13,6 +13,11 @@ create table if not exists kb_qa (
   created_at  timestamptz not null default now()
 );
 
+-- RLS with no policies: anon/authenticated (public API keys) can neither read
+-- nor write. The bot uses the service role, which bypasses RLS. match_kb runs
+-- as the invoker, so it returns nothing to anon callers either.
+alter table kb_qa enable row level security;
+
 -- Approximate nearest-neighbour index over cosine distance.
 create index if not exists kb_qa_embedding_idx
   on kb_qa using hnsw (embedding vector_cosine_ops);

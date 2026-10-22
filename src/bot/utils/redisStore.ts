@@ -69,7 +69,12 @@ export class RedisStore {
    * the TTL; after it expires the AI resumes on the next user message.
    */
   async markOperatorReply(userId: number, ttlSeconds: number): Promise<void> {
-    await this.redis.set(this.operatorReplyKey(userId), "1", "EX", ttlSeconds);
+    // EX needs a positive integer; a zero pause means the pause is disabled.
+    const ttl = Math.round(ttlSeconds);
+    if (ttl < 1) {
+      return;
+    }
+    await this.redis.set(this.operatorReplyKey(userId), "1", "EX", ttl);
   }
 
   /** Whether an operator replied to this user within the pause window. */
@@ -77,13 +82,14 @@ export class RedisStore {
     return (await this.redis.exists(this.operatorReplyKey(userId))) === 1;
   }
 
-  async getSuggestion(messageId: number): Promise<AiSuggestion | null> {
-    const data = await this.redis.get(this.suggestionKey(messageId));
+  /**
+   * Atomically reads and removes a suggestion (GETDEL), so concurrent taps on
+   * the approve button can't both send it. Put it back with saveSuggestion if
+   * it wasn't delivered.
+   */
+  async takeSuggestion(messageId: number): Promise<AiSuggestion | null> {
+    const data = await this.redis.getdel(this.suggestionKey(messageId));
     return data === null ? null : (JSON.parse(data) as AiSuggestion);
-  }
-
-  async deleteSuggestion(messageId: number): Promise<void> {
-    await this.redis.del(this.suggestionKey(messageId));
   }
 }
 

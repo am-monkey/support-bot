@@ -12,6 +12,7 @@ import { resolve } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 
 import { embedDocuments } from "../src/ai/embeddings";
+import { containsVpnKey } from "../src/ai/knowledgeBase";
 import { config } from "../src/config";
 
 interface QaRow {
@@ -41,8 +42,15 @@ function loadRows(): QaRow[] {
 }
 
 async function main(): Promise<void> {
-  const rows = loadRows();
-  console.log(`Loaded ${rows.length} Q&A pairs from ${EXPORT_PATH}`);
+  const loaded = loadRows();
+  // Never store personal VPN keys in the shared knowledge base.
+  const rows = loaded.filter(
+    (r) => !containsVpnKey(r.question) && !containsVpnKey(r.answer),
+  );
+  console.log(
+    `Loaded ${loaded.length} Q&A pairs from ${EXPORT_PATH}, ` +
+      `skipped ${loaded.length - rows.length} with VPN keys`,
+  );
   if (rows.length === 0) return;
 
   const supabase = createClient(config.supabase.URL, config.supabase.KEY);

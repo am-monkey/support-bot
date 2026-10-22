@@ -29,6 +29,8 @@ export interface AiConfig {
   EMBEDDING_MODEL: string;
   TOP_K: number;
   MATCH_THRESHOLD: number;
+  /** Escalate to an operator when the model's confidence is below this (0..1). */
+  CONFIDENCE_THRESHOLD: number;
   /** Escalate to an operator when top KB relevance is below this (0..1). */
   ESCALATE_SIMILARITY: number;
   /** After an operator replies, the AI stays silent for this many minutes. */
@@ -55,18 +57,54 @@ function optionalEnv(name: string, fallback: string): string {
   return value === undefined || value === "" ? fallback : value;
 }
 
+/** Parses a numeric env value, failing fast at startup on typos or bad ranges. */
+function toNumber(
+  name: string,
+  raw: string,
+  valid: (n: number) => boolean,
+): number {
+  const n = Number(raw);
+  if (!Number.isFinite(n) || !valid(n)) {
+    throw new Error(`Invalid value for environment variable ${name}: "${raw}"`);
+  }
+  return n;
+}
+
+const isInt = Number.isInteger;
+const isPositiveInt = (n: number): boolean => isInt(n) && n > 0;
+const isNonNegative = (n: number): boolean => n >= 0;
+const isUnit = (n: number): boolean => n >= 0 && n <= 1;
+
+const EFFORTS: readonly AiConfig["EFFORT"][] = [
+  "low",
+  "medium",
+  "high",
+  "xhigh",
+  "max",
+];
+
+function effortEnv(name: string, fallback: AiConfig["EFFORT"]): AiConfig["EFFORT"] {
+  const raw = optionalEnv(name, fallback);
+  if (!(EFFORTS as readonly string[]).includes(raw)) {
+    throw new Error(
+      `Invalid value for environment variable ${name}: "${raw}" (expected ${EFFORTS.join(" | ")})`,
+    );
+  }
+  return raw as AiConfig["EFFORT"];
+}
+
 function loadConfig(): Config {
   return {
     bot: {
       TOKEN: requireEnv("BOT_TOKEN"),
-      DEV_ID: Number(requireEnv("BOT_DEV_ID")),
-      GROUP_ID: Number(requireEnv("BOT_GROUP_ID")),
+      DEV_ID: toNumber("BOT_DEV_ID", requireEnv("BOT_DEV_ID"), isInt),
+      GROUP_ID: toNumber("BOT_GROUP_ID", requireEnv("BOT_GROUP_ID"), isInt),
       BOT_EMOJI_ID: requireEnv("BOT_EMOJI_ID"),
     },
     redis: {
       HOST: requireEnv("REDIS_HOST"),
-      PORT: Number(requireEnv("REDIS_PORT")),
-      DB: Number(requireEnv("REDIS_DB")),
+      PORT: toNumber("REDIS_PORT", requireEnv("REDIS_PORT"), isPositiveInt),
+      DB: toNumber("REDIS_DB", requireEnv("REDIS_DB"), (n) => isInt(n) && n >= 0),
     },
     supabase: {
       URL: requireEnv("SUPABASE_URL"),
@@ -76,12 +114,30 @@ function loadConfig(): Config {
       ANTHROPIC_API_KEY: requireEnv("ANTHROPIC_API_KEY"),
       VOYAGE_API_KEY: requireEnv("VOYAGE_API_KEY"),
       MODEL: optionalEnv("AI_MODEL", "claude-sonnet-5"),
-      EFFORT: optionalEnv("AI_EFFORT", "low") as AiConfig["EFFORT"],
+      EFFORT: effortEnv("AI_EFFORT", "low"),
       EMBEDDING_MODEL: optionalEnv("AI_EMBEDDING_MODEL", "voyage-3.5"),
-      TOP_K: Number(optionalEnv("AI_TOP_K", "5")),
-      MATCH_THRESHOLD: Number(optionalEnv("AI_MATCH_THRESHOLD", "0.3")),
-      ESCALATE_SIMILARITY: Number(optionalEnv("AI_ESCALATE_SIMILARITY", "0.5")),
-      OPERATOR_PAUSE_MINUTES: Number(optionalEnv("AI_OPERATOR_PAUSE_MINUTES", "30")),
+      TOP_K: toNumber("AI_TOP_K", optionalEnv("AI_TOP_K", "5"), isPositiveInt),
+      MATCH_THRESHOLD: toNumber(
+        "AI_MATCH_THRESHOLD",
+        optionalEnv("AI_MATCH_THRESHOLD", "0.3"),
+        isUnit,
+      ),
+      CONFIDENCE_THRESHOLD: toNumber(
+        "AI_CONFIDENCE_THRESHOLD",
+        optionalEnv("AI_CONFIDENCE_THRESHOLD", "0.7"),
+        isUnit,
+      ),
+      ESCALATE_SIMILARITY: toNumber(
+        "AI_ESCALATE_SIMILARITY",
+        optionalEnv("AI_ESCALATE_SIMILARITY", "0.5"),
+        isUnit,
+      ),
+      // 0 disables the pause.
+      OPERATOR_PAUSE_MINUTES: toNumber(
+        "AI_OPERATOR_PAUSE_MINUTES",
+        optionalEnv("AI_OPERATOR_PAUSE_MINUTES", "30"),
+        isNonNegative,
+      ),
     },
   };
 }

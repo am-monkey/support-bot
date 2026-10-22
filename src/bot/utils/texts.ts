@@ -62,11 +62,14 @@ const DATA: Record<string, string> = {
   ai_escalation_reason_operator: "пользователь попросил оператора",
   ai_escalation_reason_no_answer: "ИИ не смог ответить по базе знаний",
   ai_escalation_reason_low_relevance: "низкая релевантность к базе знаний",
+  ai_escalation_reason_low_confidence: "низкая уверенность ИИ в ответе",
   ai_suggested_answer:
     "💡 <b>Предложенный ответ</b> — отправьте как есть кнопкой ниже или напишите свой:\n<blockquote>{answer}</blockquote>",
   ai_btn_send_suggested: "✅ Отправить предложенный",
   ai_suggested_sent: "✅ Предложенный ответ отправлен пользователю.",
   ai_suggested_expired: "Предложение больше недоступно.",
+  ai_suggested_silent:
+    "Включён тихий режим — ответ не отправлен. Отключите /silent и нажмите снова.",
   vpn_key_message:
     "🔑 <b>Ваш ключ для HAPP:</b>\n{key}\n\n" +
     "Откройте приложение HAPP → «+» → добавить из буфера / по ссылке, вставьте ключ и подключайтесь.",

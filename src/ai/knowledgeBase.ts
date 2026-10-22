@@ -9,9 +9,20 @@ export interface KbMatch {
   similarity: number;
 }
 
+// Personal VPN keys (vless://, trojan://, ...) and per-user subscription links
+// (parcer.php?<token>, /krug-sub/<token>, /subbase/<token>).
+const VPN_KEY_RE =
+  /\b(?:vless|vmess|trojan|ssr?|hysteria2?|hy2|tuic|wireguard|wg):\/\/|parcer\.php\?\S+|:\/\/\S*?\/(?:krug-sub|subbase|sub)\/\S+/i;
+
+/** Whether the text contains a personal VPN key or subscription link. */
+export function containsVpnKey(text: string): boolean {
+  return VPN_KEY_RE.test(text);
+}
+
 /**
  * Retrieves the top-k most similar Q&A pairs from the `kb_qa` table via the
- * `match_kb` RPC (cosine similarity over pgvector embeddings).
+ * `match_kb` RPC (cosine similarity over pgvector embeddings). Pairs holding a
+ * personal VPN key are dropped so one user's key never reaches another.
  */
 export async function retrieve(
   client: SupabaseClient,
@@ -28,7 +39,9 @@ export async function retrieve(
     return [];
   }
 
-  return (data ?? []) as KbMatch[];
+  return ((data ?? []) as KbMatch[]).filter(
+    (m) => !containsVpnKey(m.question) && !containsVpnKey(m.answer),
+  );
 }
 
 /** Inserts a single Q&A pair with its embedding (used for self-learning). */

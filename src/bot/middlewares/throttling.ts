@@ -5,12 +5,13 @@ import type { MyContext } from "../../types";
 /**
  * Rate-limits users on incoming messages. A user who sends a second message
  * within the TTL window has it deleted and dropped. Mirrors the Python ThrottlingMiddleware.
+ * Private chats only: operators in the support group are never throttled.
  */
 export function throttlingMiddleware(ttlMs = 1000): MiddlewareFn<MyContext> {
   const cache = new Map<number, number>();
 
   return async (ctx, next) => {
-    if (!ctx.message) {
+    if (!ctx.message || ctx.chat?.type !== "private") {
       return next();
     }
 

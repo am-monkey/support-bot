@@ -52,10 +52,20 @@ async function escalate(
   });
 }
 
+/** Whether an operator replied recently or silenced the user's topic. */
+async function operatorTookOver(ctx: MyContext, userId: number): Promise<boolean> {
+  const [active, fresh] = await Promise.all([
+    ctx.redis.isOperatorActive(userId),
+    ctx.redis.getUser(userId),
+  ]);
+  return active || Boolean(fresh?.message_silent_mode);
+}
+
 /**
  * Auto-answers the user directly and notifies operators in the user's topic.
  * Escalates to an operator (no auto-answer, but with a suggested reply) when the
- * user asks for one, the AI can't answer, or KB relevance is below the threshold.
+ * user asks for one, the AI can't answer, or KB relevance or the model's
+ * confidence is below its threshold.
  *
  * VPN key requests are served by fetching the key STRICTLY by userData.id (the
  * topic owner) — never from message text — so a user only ever gets their own
@@ -69,6 +79,12 @@ export async function handleAiReply(
 ): Promise<void> {
   const outcome = await buildDraft(ctx.supabase, question);
   if (!outcome) {
+    return;
+  }
+
+  // The pipeline can take a while (embedding backoff + model call): re-check
+  // that an operator hasn't replied or turned on silent mode in the meantime.
+  if (await operatorTookOver(ctx, userData.id)) {
     return;
   }
 
@@ -115,7 +131,9 @@ export async function handleAiReply(
         ? "ai_escalation_reason_no_answer"
         : outcome.topSimilarity < config.ai.ESCALATE_SIMILARITY
           ? "ai_escalation_reason_low_relevance"
-          : null;
+          : outcome.confidence < config.ai.CONFIDENCE_THRESHOLD
+            ? "ai_escalation_reason_low_confidence"
+            : null;
 
     if (reasonKey) {
       await escalate(
