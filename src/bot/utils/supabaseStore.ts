@@ -1,9 +1,12 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import type { SupabaseConfig } from "../../config";
+import { logger } from "../../logger";
 
 const TABLE_NAME = "users";
 const CHAT_ID_FIELD = "chat_id";
+// The key users paste into their app (column owned by krugvpn-bot).
+const DEFAULT_VPN_KEY_COLUMN = "sub";
 
 export interface Subscription {
   sub: string;
@@ -23,17 +26,21 @@ export class SupabaseStore {
    * Returns the VPN key for a user, looked up STRICTLY by their chat_id.
    * The caller must pass the trusted sender/topic-owner id — never a value from
    * message text — so a user can only ever receive their own key.
-   * Column name is configurable via SUPABASE_VPN_KEY_COLUMN (default "vpn_key").
+   * Column name is configurable via SUPABASE_VPN_KEY_COLUMN (default "sub").
    */
   async getVpnKey(userId: number): Promise<string | null> {
-    const column = process.env.SUPABASE_VPN_KEY_COLUMN ?? "vpn_key";
+    const column = process.env.SUPABASE_VPN_KEY_COLUMN ?? DEFAULT_VPN_KEY_COLUMN;
     const { data, error } = await this.client
       .from(TABLE_NAME)
       .select(column)
       .eq(CHAT_ID_FIELD, userId)
       .maybeSingle();
 
-    if (error || !data) {
+    if (error) {
+      logger.error({ err: error, column }, "getVpnKey query failed");
+      return null;
+    }
+    if (!data) {
       return null;
     }
     const value = (data as unknown as Record<string, unknown>)[column];
@@ -41,21 +48,26 @@ export class SupabaseStore {
   }
 
   async getSubscription(userId: number): Promise<Subscription | null> {
-    const { data } = await this.client
+    const { data, error } = await this.client
       .from(TABLE_NAME)
-      .select("sub, expiry_time")
+      .select(`${DEFAULT_VPN_KEY_COLUMN}, expiry_time`)
       .eq(CHAT_ID_FIELD, userId)
       .maybeSingle();
 
+    if (error) {
+      logger.error({ err: error }, "getSubscription query failed");
+      return null;
+    }
     if (!data) {
       return null;
     }
 
-    const sub: string = (data.sub as string) || "-";
+    const row = data as unknown as Record<string, unknown>;
+    const sub = (row[DEFAULT_VPN_KEY_COLUMN] as string | null) || "-";
 
     let days_left: number | string = "-";
-    if (data.expiry_time !== null && data.expiry_time !== undefined) {
-      const expiryTs = Number(data.expiry_time) / 1000;
+    if (row.expiry_time !== null && row.expiry_time !== undefined) {
+      const expiryTs = Number(row.expiry_time) / 1000;
       const nowTs = Date.now() / 1000;
       days_left = Math.max(0, Math.floor((expiryTs - nowTs) / 86400));
     }
