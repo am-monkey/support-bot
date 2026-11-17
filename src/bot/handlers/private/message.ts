@@ -2,7 +2,7 @@ import { GrammyError } from "grammy";
 
 import { config } from "../../../config";
 import type { MyContext } from "../../../types";
-import { handleAiReply } from "../../utils/aiDraft";
+import { handleAiReply, isAiPaused } from "../../utils/aiDraft";
 import { createForumTopic, getOrCreateForumTopic } from "../../utils/forumTopic";
 import { replyTransient } from "../../utils/telegram";
 
@@ -65,7 +65,7 @@ export async function incomingMessageHandler(ctx: MyContext): Promise<void> {
   const aiAllowed =
     !!question?.trim() &&
     !userData.message_silent_mode &&
-    !(await ctx.redis.isOperatorActive(userData.id));
+    !(await isAiPaused(ctx, userData.id));
   await Promise.all([
     replyTransient(
       ctx.api,

@@ -52,13 +52,25 @@ async function escalate(
   });
 }
 
+/**
+ * Whether the AI is paused for this user because an operator replied recently.
+ * The developer (BOT_DEV_ID) is never paused, so the AI can be tested from that
+ * account while also acting as an operator. Silent mode still applies.
+ */
+export async function isAiPaused(ctx: MyContext, userId: number): Promise<boolean> {
+  if (userId === config.bot.DEV_ID) {
+    return false;
+  }
+  return ctx.redis.isOperatorActive(userId);
+}
+
 /** Whether an operator replied recently or silenced the user's topic. */
 async function operatorTookOver(ctx: MyContext, userId: number): Promise<boolean> {
-  const [active, fresh] = await Promise.all([
-    ctx.redis.isOperatorActive(userId),
+  const [paused, fresh] = await Promise.all([
+    isAiPaused(ctx, userId),
     ctx.redis.getUser(userId),
   ]);
-  return active || Boolean(fresh?.message_silent_mode);
+  return paused || Boolean(fresh?.message_silent_mode);
 }
 
 /**
